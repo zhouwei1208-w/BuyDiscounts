@@ -1,0 +1,146 @@
+apply plugin: 'com.android.application'
+def cfg = rootProject.ext.configuration //配置
+
+android {
+    compileSdkVersion cfg.targetSdk
+    defaultConfig {
+        multiDexEnabled true
+        applicationId "com.gouyohui.buydiscounts"
+        minSdkVersion cfg.minSdk
+        targetSdkVersion cfg.targetSdk
+        versionCode cfg.version_code
+        versionName cfg.version_name
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        flavorDimensions "versionCode"
+        vectorDrawables.useSupportLibrary = true
+        ndk {
+            abiFilters "armeabi", "armeabi-v7a", "x86", "mips"
+        }
+    }
+    dataBinding {
+        enabled true
+    }
+
+    //多渠道打包
+    productFlavors {
+        xiaomi {
+
+        }
+
+    }
+    productFlavors.all { flavor ->
+        flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
+    }
+
+    //3.0以后换名字
+    applicationVariants.all { variant ->    //批量修改Apk名字
+        variant.outputs.all { output ->
+            if (!variant.buildType.isDebuggable()) {
+                //获取签名的名字 variant.signingConfig.name
+                //要被替换的源字符串
+                def sourceFile = "-${variant.flavorName}-${variant.buildType.name}"
+                //替换的字符串
+                def replaceFile = "_V${variant.versionName}_${variant.flavorName}_${variant.buildType.name}"
+                outputFileName = output.outputFile.name.replace(sourceFile, replaceFile)
+                //遗留问题：如何获取当前module的name，如CodeBooke这个名字怎么获取到
+            }
+        }
+    }
+    signingConfigs {
+        config {
+            storeFile file("C:\\Users\\zhou\\gouyohui.jks")//指定keystore文件的位置，在这里引用的是相对地址
+            storePassword "123456" //指定密码
+            keyAlias "gouyohui"//指定别名
+            keyPassword "123456"//指定别名密码
+        }
+    }
+
+
+    buildTypes {
+        release {
+            // 是否进行混淆
+            minifyEnabled false
+            debuggable true
+            shrinkResources false    // 移除无用的resource文件
+            android.defaultConfig.javaCompileOptions.annotationProcessorOptions.includeCompileClasspath = true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+        }
+    }
+}
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+    maven {
+        url "http://mvnrepo.alibaba-inc.com/mvn/repository"
+    }
+
+    flatDir {
+        dirs 'libs'
+    }
+}
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    //noinspection GradleCompatible
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation 'com.jakewharton:butterknife:8.8.1'
+    implementation 'com.jakewharton:butterknife-compiler:8.8.1'
+    implementation 'com.android.support:design:27.1.1'
+    implementation 'am.widget:gradienttabstrip:26.1.0'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.github.bumptech.glide:glide:4.7.1'
+    //rx
+    implementation 'io.reactivex:rxandroid:1.2.1'
+    implementation 'io.reactivex:rxjava:1.3.4'
+    implementation 'com.jakewharton.rxrelay:rxrelay:1.2.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava:2.4.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.0.1'
+    implementation 'org.litepal.android:core:2.0.0'
+    implementation 'com.github.bumptech.glide:glide:3.7.0'
+    implementation 'com.readystatesoftware.systembartint:systembartint:1.0.3'
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.40'
+    implementation 'com.github.nuptboyzhb.lib.uikit:superswiperefreshlayout:1.0.0'
+    implementation 'de.hdodenhof:circleimageview:2.1.0'
+    implementation 'com.android.support:cardview-v7:27.1.1'
+    implementation project(':lib_uikit')
+    implementation project(':push')
+    implementation project(':library')
+     implementation files('libs/SecurityEnvSDK-release-1.1.0.jar')
+    implementation files('libs/umeng-analytics-7.5.4.jar')
+    implementation files('libs/umeng-common-1.5.4.jar')
+    implementation files('libs/utdid4all-1.1.5.3_proguard.jar')
+    implementation 'com.kyleduo.switchbutton:library:2.0.0'
+    //fastjson
+    implementation 'com.alibaba:fastjson:1.2.9'
+    //支付
+    implementation 'com.alibaba.alipay:alipaySingle:20160825@jar'
+    //登陆
+    implementation 'com.ali.auth.sdk:alibabauth_core:1.4.3@jar'
+    implementation 'com.ali.auth.sdk:alibabauth_ui:1.4.3@aar'
+    implementation 'com.ali.auth.sdk:alibabauth_ext:1.4.3@jar'
+    //安全基础
+    implementation 'com.taobao.android:securityguardaar3:5.1.81@aar'
+    //Mtop网关
+    implementation 'com.taobao.android:mtopsdk_allinone_open:1.2.2.4@jar'
+    //applink
+    implementation 'com.alibaba.sdk.android:alibc_link_partner:1.1.0.6@aar'
+    //UT
+//    implementation 'com.taobao.android:utdid4all:1.1.5.3_proguard@jar'
+    implementation 'com.alibaba.mtl:app-monitor-sdk:2.5.1.3_for_bc_proguard@jar'
+    //联盟SDK
+    implementation 'com.alimama.tunion.sdk:tuniontradesdk:0.3.2@aar'
+//        implementation(name:'alibabauth_ui-1.1.4', ext:'aar')
+    //电商SDK
+    implementation 'com.alibaba.sdk.android:alibc_trade_common:3.1.1.210@aar'
+    implementation 'com.alibaba.sdk.android:alibc_trade_biz:3.1.1.210@aar'
+    implementation 'com.alibaba.sdk.android:alibc_trade_sdk:3.1.1.210@aar'
+    implementation 'com.tencent.mm.opensdk:wechat-sdk-android-with-mta:1.0.2'
+    implementation 'com.timmy.tdialog:tdialog:2.1.1'
+}
